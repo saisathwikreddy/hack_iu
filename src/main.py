@@ -357,6 +357,26 @@ class BashSession:
         timestamp = datetime.now().strftime("%Y%m%d-%H:%M:%S-%f")
         # return f"{timestamp}-{uuid.uuid4().hex[:6]}"
         return f"{timestamp}"
+    
+    def _handle_datetime_tool(self) -> Dict[str, Any]:
+        """Handle datetime tool execution using bash"""
+        try:
+            self.logger.info("Executing datetime tool via bash")
+            result = self._handle_bash_command({"command": "date"})
+            return result
+            
+        except Exception as e:
+            self.logger.error(f"Error in _handle_datetime_tool: {str(e)}")
+            self.logger.error(traceback.format_exc())
+            return {"error": str(e)}
+
+    def get_datetime(self) -> str:
+        """Public method to get current datetime"""
+        result = self._handle_datetime_tool()
+        if "error" in result:
+            self.logger.error(f"Error getting datetime: {result['error']}")
+            return f"Error: {result['error']}"
+        return result["content"]
 
     def _handle_bash_command(self, tool_call: Dict[str, Any]) -> Dict[str, Any]:
         """Handle bash command execution"""
