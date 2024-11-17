@@ -5,6 +5,7 @@ import os
 import uuid
 import json
 import pandas as pd
+from collections import Counter
 
 DATA_FILE = "data/output.jsonl"
 
@@ -36,6 +37,8 @@ def read_data():
 
 # Function to handle commands
 def process_command(command: str):
+    cur_date_time = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    command += f'. use the current datetime as neeeded: {cur_date_time}'
     messages = editor_session.process_edit(command)
     try:
         data = read_data()
@@ -71,3 +74,36 @@ else:
 #         st.write(f"**{key}**: {value['value']} (Created: {value['created_at']}, Updated: {value['updated_at']})")
 # else:
 #     st.info("The database is currently empty.")
+
+# image_url = "https://example.com/image.jpg"
+
+# st.image(image_url, caption="Sample Image", use_column_width=True)
+
+def extract_hour(filename):
+    try:
+        # Extract the date-time part from the filename
+        datetime_part = filename.split("-")[0:2]  # ['20241117', '083715']
+        time_part = datetime_part[1]  # '083715'
+        hour = time_part[:2]  # Extract '08' from '083715'
+        return int(hour)
+    except (IndexError, ValueError):
+        return None  # Return None if the filename is malformed
+    
+folder_path = './logs/'
+log_filenames = [f for f in os.listdir(folder_path) if f.endswith(".log")]
+
+# Extract hours from filenames
+hours = [extract_hour(f) for f in log_filenames if extract_hour(f) is not None]
+hour_counts = Counter(hours)
+
+# Convert to a DataFrame for plotting
+df = pd.DataFrame(list(hour_counts.items()), columns=["Hour", "Log Count"])
+df = df.sort_values("Hour")  # Sort by hour for better visualization
+
+# Display the table
+# st.subheader("Log Counts by Hour")
+# st.dataframe(df)
+
+# Plot the histogram
+st.subheader("Logs by Hour (Histogram)")
+st.bar_chart(df.set_index("Hour"))
